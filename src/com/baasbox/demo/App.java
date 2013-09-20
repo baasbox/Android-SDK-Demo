@@ -15,7 +15,7 @@ public class App extends Application {
 		super.onCreate();
 		
 		BAASBoxConfig config = new BAASBoxConfig();
-		config.API_DOMAIN = "172.16.5.64";
+		config.API_DOMAIN = "10.0.2.2";//TODO change to real IP for device or remote server test
 		config.AUTHENTICATION_TYPE = AuthType.SESSION_TOKEN;
 		
 		bbox = new BAASBox(config, this);

@@ -13,7 +13,7 @@ public class AlertUtils {
 		AlertDialog.Builder builder = new AlertDialog.Builder(context);
 		builder.setCancelable(true);
 		builder.setTitle("Client Error");
-		builder.setMessage("An unexpected app error: " + e.httpStatus + " (" + e.code + ")");
+		builder.setMessage("An unexpected app error: " + e.httpStatus + " (" + e.code + ") :" + e.getMessage());
 		builder.setNegativeButton("Cancel", null);
 		builder.create().show();
 	}
@@ -22,7 +22,7 @@ public class AlertUtils {
 		AlertDialog.Builder builder = new AlertDialog.Builder(context);
 		builder.setCancelable(true);
 		builder.setTitle("Server Error");
-		builder.setMessage("An unexpected server error: " + e.httpStatus + " (" + e.code + ")");
+		builder.setMessage("An unexpected server error: " + e.httpStatus + " (" + e.code + "):" + e.getMessage());
 		builder.setNegativeButton("Cancel", null);
 		builder.create().show();
 	}
