@@ -1,0 +1,49 @@
+// Top-level build file
+
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+
+  dependencies {
+    classpath 'com.android.tools.build:gradle:0.8.+'
+  }
+}
+
+
+task wrapper(type : Wrapper) {
+  gradleVersion = '1.10'
+}
+
+apply plugin: 'android'
+
+repositories {
+  mavenCentral()
+}
+
+android {
+  compileSdkVersion 19
+  buildToolsVersion "19.0.1"
+
+  defaultConfig {
+    minSdkVersion 14
+    targetSdkVersion 19
+  }
+
+  sourceSets {
+    main {
+      manifest.srcFile 'AndroidManifest.xml'
+      java.srcDirs = ['src']
+      resources.srcDirs = ['src']
+      aidl.srcDirs = ['src']
+      renderscript.srcDirs = ['src']
+      res.srcDirs = ['res']
+      assets.srcDirs = ['assets']
+    }
+  }
+}
+
+
+dependencies {
+  compile files('libs/baasbox-android-0.7.3.jar');
+}

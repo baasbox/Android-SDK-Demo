@@ -1,9 +1,10 @@
 package com.baasbox.demo;
 
-import com.baasbox.android.BAASBoxClientException;
-import com.baasbox.android.BAASBoxException;
-import com.baasbox.android.BAASBoxResult;
-import com.baasbox.android.BAASBoxServerException;
+import com.baasbox.android.BaasClientException;
+import com.baasbox.android.BaasException;
+import com.baasbox.android.BaasResult;
+import com.baasbox.android.BaasServerException;
+import com.baasbox.android.BaasUser;
 import com.baasbox.demo.util.AlertUtils;
 
 import android.os.AsyncTask;
@@ -24,11 +25,12 @@ public class LoginActivity extends Activity {
 	private EditText passwordEditText;
 	private Button loginButton;
 
+	@SuppressWarnings("static-access")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		if (App.bbox.isUserLoggedIn()) {
+		if ( BaasUser.current().isAuthentcated()) {
 			onUserLogged();
 			return;
 		}
@@ -79,11 +81,11 @@ public class LoginActivity extends Activity {
 		loginTask.execute(username, password);
 	}
 
-	protected void onLogin(BAASBoxResult<Void> result) {
+	protected void onLogin(BaasResult<BaasUser> result) {
 		try {
 			result.get();
 			onUserLogged();
-		} catch (BAASBoxClientException e) {
+		} catch (BaasClientException e) {
 			if (e.httpStatus == 401) {
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
 				builder.setCancelable(true);
@@ -94,14 +96,14 @@ public class LoginActivity extends Activity {
 			} else {
 				AlertUtils.showErrorAlert(this, e);
 			}
-		} catch (BAASBoxServerException e) {
+		} catch (BaasServerException e) {
 			AlertUtils.showErrorAlert(this, e);
-		} catch (BAASBoxException e) {
+		} catch (BaasException e) {
 			AlertUtils.showErrorAlert(this, e);
 		}
 	}
 
-	public class LoginTask extends AsyncTask<String, Void, BAASBoxResult<Void>> {
+	public class LoginTask extends AsyncTask<String, Void, BaasResult<BaasUser>> {
 		
 		@Override
 		protected void onPreExecute() {
@@ -109,12 +111,14 @@ public class LoginActivity extends Activity {
 		}
 		
 		@Override
-		protected BAASBoxResult<Void> doInBackground(String... params) {
-			return App.bbox.login(params[0], params[1]);
+		protected BaasResult<BaasUser> doInBackground(String... params) {
+			BaasUser user = BaasUser.withUserName(params[0]);
+			user.setPassword(params[1]);
+			return user.loginSync();
 		}
 
 		@Override
-		protected void onPostExecute(BAASBoxResult<Void> result) {
+		protected void onPostExecute(BaasResult<BaasUser> result) {
 			loginButton.setEnabled(true);
 			onLogin(result);
 		}

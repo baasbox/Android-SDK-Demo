@@ -1,15 +1,13 @@
 package com.baasbox.demo;
 
 import java.util.ArrayList;
+import java.util.List;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import com.baasbox.android.BAASBoxClientException;
-import com.baasbox.android.BAASBoxException;
-import com.baasbox.android.BAASBoxResult;
-import com.baasbox.android.BAASBoxServerException;
+import com.baasbox.android.BaasClientException;
+import com.baasbox.android.BaasDocument;
+import com.baasbox.android.BaasException;
+import com.baasbox.android.BaasResult;
+import com.baasbox.android.BaasServerException;
 import com.baasbox.demo.util.AlertUtils;
 
 import android.app.AlertDialog;
@@ -42,7 +40,7 @@ public class AddressBookActivity extends ListActivity implements
 
 	private ListTask listTask;
 	private AddTask addTask;
-	private ArrayAdapter<JSONObject> adapter;
+	private ArrayAdapter<BaasDocument> adapter;
 	private MenuItem refreshMenuItem;
 	private int selectedItem = -1;
 
@@ -128,8 +126,8 @@ public class AddressBookActivity extends ListActivity implements
 
 	@Override
 	public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-		JSONObject person = adapter.getItem(selectedItem);
-		mode.setTitle(person.optString("name"));
+		BaasDocument person = adapter.getItem(selectedItem);
+		mode.setTitle(person.getString("name"));
 
 		MenuItem delete = menu.add(ContextMenu.NONE, MENUITEM_DELETE,
 				ContextMenu.NONE, "Delete");
@@ -150,7 +148,7 @@ public class AddressBookActivity extends ListActivity implements
 	}
 
 	protected void delete(int position) {
-		JSONObject person = adapter.getItem(position);
+		BaasDocument person = adapter.getItem(position);
 		adapter.remove(person);
 		new DeleteTask().execute(person);
 	}
@@ -187,53 +185,50 @@ public class AddressBookActivity extends ListActivity implements
 		addTask.execute(name, phone);
 	}
 
-	public void onPersonAdded(BAASBoxResult<JSONObject> result) {
+	public void onPersonAdded(BaasResult<BaasDocument> result) {
 		try {
 			adapter.add(result.get());
 			adapter.notifyDataSetChanged();
-		} catch (BAASBoxClientException e) {
+		} catch (BaasClientException e) {
 			AlertUtils.showErrorAlert(this, e);
-		} catch (BAASBoxServerException e) {
+		} catch (BaasServerException e) {
 			AlertUtils.showErrorAlert(this, e);
-		} catch (BAASBoxException e) {
+		} catch (BaasException e) {
 			AlertUtils.showErrorAlert(this, e);
 		}
 	}
 
-	protected void onListReceived(BAASBoxResult<JSONArray> result) {
+	protected void onListReceived(BaasResult<List<BaasDocument>> result) {
 		try {
-			JSONArray array = result.get();
+			List<BaasDocument> array = result.get();
 			adapter.clear();
 
-			for (int i = 0; i < array.length(); i++)
-				adapter.add(array.getJSONObject(i));
+			for (int i = 0; i < array.size(); i++)
+				adapter.add(array.get(i));
 
 			adapter.notifyDataSetChanged();
-		} catch (BAASBoxClientException e) {
+		} catch (BaasClientException e) {
 			AlertUtils.showErrorAlert(this, e);
-		} catch (BAASBoxServerException e) {
+		} catch (BaasServerException e) {
 			AlertUtils.showErrorAlert(this, e);
-		} catch (BAASBoxException e) {
+		} catch (BaasException e) {
 			AlertUtils.showErrorAlert(this, e);
-		} catch (JSONException e) {
-			throw new Error(e);
 		}
 	}
 	
-	protected void onPersonDeleted(BAASBoxResult<Void> result) {
+	protected void onPersonDeleted(BaasResult<Void> result) {
 		try {
 			result.get();
-		} catch (BAASBoxClientException e) {
+		} catch (BaasClientException e) {
 			AlertUtils.showErrorAlert(this, e);
-		} catch (BAASBoxServerException e) {
+		} catch (BaasServerException e) {
 			AlertUtils.showErrorAlert(this, e);
-		} catch (BAASBoxException e) {
+		} catch (BaasException e) {
 			AlertUtils.showErrorAlert(this, e);
 		}
 	}
 
-	public class ListTask extends
-			AsyncTask<Void, Void, BAASBoxResult<JSONArray>> {
+	public class ListTask extends AsyncTask<Void, Void, BaasResult<List<BaasDocument>>> {
 
 		@Override
 		protected void onPreExecute() {
@@ -242,59 +237,54 @@ public class AddressBookActivity extends ListActivity implements
 		}
 
 		@Override
-		protected BAASBoxResult<JSONArray> doInBackground(Void... params) {
-			return App.bbox.getAllDocuments("address-book", "name ASC", -1, -1);
+		protected BaasResult<List<BaasDocument>> doInBackground(Void... params) {
+			return BaasDocument.fetchAllSync("address-book");
 		}
 
 		@Override
-		protected void onPostExecute(BAASBoxResult<JSONArray> result) {
+		protected void onPostExecute(BaasResult<List<BaasDocument>> result) {
 			if (refreshMenuItem != null)
 				refreshMenuItem.setActionView(null);
 			onListReceived(result);
 		}
 	}
 
-	public class AddTask extends
-			AsyncTask<String, Void, BAASBoxResult<JSONObject>> {
+	public class AddTask extends AsyncTask<String, Void, BaasResult<BaasDocument>> {
 
 		@Override
-		protected BAASBoxResult<JSONObject> doInBackground(String... params) {
-			JSONObject person = new JSONObject();
+		protected BaasResult<BaasDocument> doInBackground(String... params) {
+			BaasDocument person = new BaasDocument("address-book");
 
-			try {
-				person.put("name", params[0]);
-				person.put("phone", params[1]);
-			} catch (JSONException e) {
-			}
+			person.putString("name", params[0]);
+			person.putString("phone", params[1]);
+			
 
-			return App.bbox.createDocument("address-book", person);
+			return person.saveSync();
 		}
 
 		@Override
-		protected void onPostExecute(BAASBoxResult<JSONObject> result) {
+		protected void onPostExecute(BaasResult<BaasDocument> result) {
 			onPersonAdded(result);
 		}
 	}
 
-	public class DeleteTask extends
-			AsyncTask<JSONObject, Void, BAASBoxResult<Void>> {
+	public class DeleteTask extends	AsyncTask<BaasDocument, Void, BaasResult<Void>> {
 		
 		@Override
-		protected BAASBoxResult<Void> doInBackground(JSONObject... params) {
-			return App.bbox.deleteDocument("address-book", params[0].optString("id"));
+		protected BaasResult<Void> doInBackground(BaasDocument... params) {
+			return params[0].deleteSync();
 		}
 		
 		@Override
-		protected void onPostExecute(BAASBoxResult<Void> result) {
+		protected void onPostExecute(BaasResult<Void> result) {
 			onPersonDeleted(result);
 		}
 	}
 
-	public class Adapter extends ArrayAdapter<JSONObject> {
+	public class Adapter extends ArrayAdapter<BaasDocument> {
 
 		public Adapter(Context context) {
-			super(context, android.R.layout.simple_list_item_2,
-					new ArrayList<JSONObject>());
+			super(context, android.R.layout.simple_list_item_2,	new ArrayList<BaasDocument>());
 		}
 
 		public View getView(int position, View convertView, ViewGroup parent) {
@@ -313,9 +303,9 @@ public class AddressBookActivity extends ListActivity implements
 			}
 
 			Tag tag = (Tag) view.getTag();
-			JSONObject entry = getItem(position);
-			tag.text1.setText(entry.optString("name"));
-			tag.text2.setText(entry.optString("phone"));
+			BaasDocument entry = getItem(position);
+			tag.text1.setText(entry.getString("name"));
+			//tag.text2.setText(entry.optString("phone"));
 
 			return view;
 		}

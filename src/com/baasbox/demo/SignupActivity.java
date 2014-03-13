@@ -3,10 +3,11 @@ package com.baasbox.demo;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.baasbox.android.BAASBoxClientException;
-import com.baasbox.android.BAASBoxException;
-import com.baasbox.android.BAASBoxResult;
-import com.baasbox.android.BAASBoxServerException;
+import com.baasbox.android.BaasClientException;
+import com.baasbox.android.BaasException;
+import com.baasbox.android.BaasResult;
+import com.baasbox.android.BaasServerException;
+import com.baasbox.android.BaasUser;
 import com.baasbox.demo.util.AlertUtils;
 
 import android.os.AsyncTask;
@@ -65,7 +66,7 @@ public class SignupActivity extends Activity {
 	protected void onClickSignup(String email, String username, String password) {
 		signupTask = new SignupTask();
 		
-		JSONObject user = new JSONObject();
+		/*JSONObject user = new JSONObject();
 		JSONObject visibleByTheUser = new JSONObject();
 		
 		try {
@@ -75,17 +76,19 @@ public class SignupActivity extends Activity {
 			user.put("visibleByTheUser", visibleByTheUser);
 		} catch (JSONException e) {
 			throw new Error(e);
-		}
+		}*/
 		
+		BaasUser user = BaasUser.withUserName(username);
+		user.setPassword(password);
 		
 		signupTask.execute(user);
 	}
 
-	protected void onSignup(BAASBoxResult<Void> result) {
+	protected void onSignup(BaasResult<BaasUser> result) {
 		try {
 			result.get();
 			onUserSignedUp();
-		} catch (BAASBoxClientException e) {
+		} catch (BaasClientException e) {
 			if (e.httpStatus == 400) {
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
 				builder.setCancelable(true);
@@ -96,14 +99,14 @@ public class SignupActivity extends Activity {
 			} else {
 				AlertUtils.showErrorAlert(this, e);
 			}
-		} catch (BAASBoxServerException e) {
+		} catch (BaasServerException e) {
 			AlertUtils.showErrorAlert(this, e);
-		} catch (BAASBoxException e) {
+		} catch (BaasException e) {
 			AlertUtils.showErrorAlert(this, e);
 		}
 	}
 
-	public class SignupTask extends AsyncTask<JSONObject, Void, BAASBoxResult<Void>> {
+	public class SignupTask extends AsyncTask<BaasUser, Void, BaasResult<BaasUser>> {
 		
 		@Override
 		protected void onPreExecute() {
@@ -111,12 +114,12 @@ public class SignupActivity extends Activity {
 		}
 		
 		@Override
-		protected BAASBoxResult<Void> doInBackground(JSONObject... params) {
-			return App.bbox.signup(params[0]);
+		protected BaasResult<BaasUser> doInBackground(BaasUser... params) {
+			return params[0].signupSync();
 		}
 
 		@Override
-		protected void onPostExecute(BAASBoxResult<Void> result) {
+		protected void onPostExecute(BaasResult<BaasUser> result) {
 			signupButton.setEnabled(true);
 			onSignup(result);
 		}

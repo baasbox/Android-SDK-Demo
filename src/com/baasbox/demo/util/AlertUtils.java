@@ -3,13 +3,13 @@ package com.baasbox.demo.util;
 import android.app.AlertDialog;
 import android.content.Context;
 
-import com.baasbox.android.BAASBoxClientException;
-import com.baasbox.android.BAASBoxException;
-import com.baasbox.android.BAASBoxServerException;
+import com.baasbox.android.BaasClientException;
+import com.baasbox.android.BaasException;
+import com.baasbox.android.BaasServerException;
 
 public class AlertUtils {
 
-	public static void showErrorAlert(Context context, BAASBoxClientException e) {
+	public static void showErrorAlert(Context context, BaasClientException e) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(context);
 		builder.setCancelable(true);
 		builder.setTitle("Client Error");
@@ -18,7 +18,7 @@ public class AlertUtils {
 		builder.create().show();
 	}
 	
-	public static void showErrorAlert(Context context, BAASBoxServerException e) {
+	public static void showErrorAlert(Context context, BaasServerException e) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(context);
 		builder.setCancelable(true);
 		builder.setTitle("Server Error");
@@ -27,7 +27,7 @@ public class AlertUtils {
 		builder.create().show();
 	}
 	
-	public static void showErrorAlert(Context context, BAASBoxException e) {
+	public static void showErrorAlert(Context context, BaasException e) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(context);
 		builder.setCancelable(true);
 		builder.setTitle("Error");
